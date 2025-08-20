@@ -1,9 +1,29 @@
+import { db } from '../db';
+import { usersTable } from '../db/schema';
+import { eq } from 'drizzle-orm';
 import { type User } from '../schema';
 
 export const getUser = async (userId: number): Promise<User | null> => {
-    // This is a placeholder declaration! Real code should be implemented here.
-    // The goal of this handler is fetching a user by their ID.
-    // Should return user details including current virtual balance.
-    // Returns null if user not found.
-    return Promise.resolve(null);
+  try {
+    // Query user by ID
+    const result = await db.select()
+      .from(usersTable)
+      .where(eq(usersTable.id, userId))
+      .execute();
+
+    // Return null if user not found
+    if (result.length === 0) {
+      return null;
+    }
+
+    // Convert numeric balance back to number before returning
+    const user = result[0];
+    return {
+      ...user,
+      total_balance: parseFloat(user.total_balance) // Convert string back to number
+    };
+  } catch (error) {
+    console.error('User fetch failed:', error);
+    throw error;
+  }
 };
